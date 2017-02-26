@@ -81,6 +81,22 @@ public class AudioManager
         }
     }
 
+    public void StopEvent(string name)
+    {
+        StopEvent(name, 0.0f);
+    }
+
+    public void StopEvent(string name, float delay)
+    {
+        if (Mathf.Approximately(delay, 0.0f))
+        {
+        }
+        else
+        {
+            _component.StartCoroutine(DelayedStopEvent(name, delay));
+        }
+    }
+
     public Coroutine StartCoroutine(IEnumerator routine)
     {
         return _component.StartCoroutine(routine);
@@ -91,5 +107,12 @@ public class AudioManager
         Log(string.Format("Delaying event {0} by {1} secs", name, delay));
         yield return new WaitForSeconds(delay);
         PlayEvent(name);
+    }
+
+    private IEnumerator DelayedStopEvent(string name, float delay)
+    {
+        Log(string.Format("Delaying stop for the event {0} by {1} secs", name, delay));
+        yield return new WaitForSeconds(delay);
+        StopEvent(name);
     }
 }
