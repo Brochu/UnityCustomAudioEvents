@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public struct PlayingEvent
+public class PlayingEvent
 {
     public AudioEventBase Event;
     public float StartTime;

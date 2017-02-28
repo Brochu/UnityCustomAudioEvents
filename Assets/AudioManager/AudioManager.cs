@@ -21,30 +21,15 @@ public class AudioManager
         }
     }
 
-    public Dictionary<AudioChannel, List<PlayingEvent>> PlayingDB
-    {
-        get { return _playing; }
-    }
-
     private static AudioManager _instance;
 
     private AudioManagerComponent _component;
     private AudioDatabase _db;
-    private Dictionary<AudioChannel, List<PlayingEvent>> _playing;
 
     public void Init(AudioManagerComponent component)
     {
         _component = component;
         _db = _component.Database;
-
-        _playing = new Dictionary<AudioChannel, List<PlayingEvent>>();
-        for (int i = 0; i < _db.Events.Length; ++i)
-        {
-            if (!_playing.ContainsKey(_db.Events[i].Channel))
-            {
-                _playing.Add(_db.Events[i].Channel, new List<PlayingEvent>());
-            }
-        }
     }
 
     public void Log(string message)
@@ -55,20 +40,22 @@ public class AudioManager
         }
     }
 
-    public void PlayEvent(string name)
+    #region Playing Events
+    public PlayingEvent PlayEvent(string name)
     {
-        PlayEvent(name, 0.0f);
+        return PlayEvent(name, 0.0f);
     }
 
-    public void PlayEvent(string name, float delay)
+    public PlayingEvent PlayEvent(string name, float delay)
     {
         if (Mathf.Approximately(delay, 0.0f))
         {
             AudioEventBase e = _db.FindEventDataByName(name);
             if (e != null)
             {
-                e.Play();
+                PlayingEvent p = e.Play();
                 Log(string.Format("Started playing event {0}", name));
+                return p;
             }
             else
             {
@@ -79,40 +66,45 @@ public class AudioManager
         {
             _component.StartCoroutine(DelayedPlayEvent(name, delay));
         }
+        return null;
     }
+    #endregion
 
-    public void StopEvent(string name)
+    #region Stopping Events
+    public void StopOldest(string name)
     {
-        StopEvent(name, 0.0f);
+        _db.FindEventDataByName(name).StopOldest();
     }
 
-    public void StopEvent(string name, float delay)
+    public void StopNewest(string name)
     {
-        if (Mathf.Approximately(delay, 0.0f))
-        {
-        }
-        else
-        {
-            _component.StartCoroutine(DelayedStopEvent(name, delay));
-        }
+        _db.FindEventDataByName(name).StopNewest();
     }
 
+    public void Stop(PlayingEvent e)
+    {
+        e.Event.Stop(e);
+    }
+    #endregion
+
+    #region Coroutine functions
     public Coroutine StartCoroutine(IEnumerator routine)
     {
         return _component.StartCoroutine(routine);
     }
+
+    public void StopCoroutine(Coroutine c)
+    {
+        _component.StopCoroutine(c);
+    }
+    #endregion
+
+    //TODO: Add methods to access pooled audio sources from the component
 
     private IEnumerator DelayedPlayEvent(string name, float delay)
     {
         Log(string.Format("Delaying event {0} by {1} secs", name, delay));
         yield return new WaitForSeconds(delay);
         PlayEvent(name);
-    }
-
-    private IEnumerator DelayedStopEvent(string name, float delay)
-    {
-        Log(string.Format("Delaying stop for the event {0} by {1} secs", name, delay));
-        yield return new WaitForSeconds(delay);
-        StopEvent(name);
     }
 }

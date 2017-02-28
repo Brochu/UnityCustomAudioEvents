@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
+
 using System.Collections;
-using System;
+using System.Linq;
 
 [CreateAssetMenu(fileName = "PlaySingleAudioEvent", menuName = "ScriptableObject/PlaySingleAudioEvent")]
 public class PlaySingleAudioEvent : AudioEventBase
@@ -10,23 +11,79 @@ public class PlaySingleAudioEvent : AudioEventBase
     [SerializeField]
     protected float _duration;
 
-    public override void Play()
+    private Coroutine _playingRoutine;
+
+    public override PlayingEvent Play()
     {
         Debug.Log(string.Format("Playing the audio event -> {0}", _eventName));
 
         PlayingEvent e = new PlayingEvent { Event = this, StartTime = Time.time };
-        AudioManager.Instance.PlayingDB[_channel].Add(e);
-        AudioManager.Instance.StartCoroutine(WaitForEndOfEvent(e));
+        _playing.Add(e);
+        _playingRoutine = AudioManager.Instance.StartCoroutine(WaitForEndOfEvent());
+
+        return e;
     }
 
-    public override void Stop()
+    public override void StopOldest()
     {
-        Debug.Log(string.Format("Stopping the audio event -> {0}", _eventName));
+        Debug.Log(string.Format("Stopping the oldest of audio event -> {0}", _eventName));
+        PlayingEvent toStop = null;
+        float min = float.MaxValue;
+
+        for (int i = 0; i < _playing.Count; ++i)
+        {
+            if (_playing[i].StartTime < min)
+            {
+                toStop = _playing[i];
+                min = _playing[i].StartTime;
+            }
+        }
+
+        Stop(toStop);
     }
 
-    private IEnumerator WaitForEndOfEvent(PlayingEvent e)
+    public override void StopNewest()
+    {
+        Debug.Log(string.Format("Stopping the newest of audio event -> {0}", _eventName));
+        PlayingEvent toStop = null;
+        float max = float.MinValue;
+
+        for (int i = 0; i < _playing.Count; ++i)
+        {
+            if (_playing[i].StartTime > max)
+            {
+                toStop = _playing[i];
+                max = _playing[i].StartTime;
+            }
+        }
+
+        Stop(toStop);
+    }
+
+    public override void Stop(PlayingEvent e)
+    {
+        if (e == null)
+        {
+            Debug.Log(string.Format("Could not find the event to stop for -> {0}", _eventName));
+            return;
+        }
+
+        Debug.Log(string.Format("Ending the audio event -> {0}, returning source(s) to pools", _eventName));
+        if (_playingRoutine != null)
+        {
+            AudioManager.Instance.StopCoroutine(_playingRoutine);
+            _playingRoutine = null;
+        }
+        // Remove audio sources
+        // return sources to pools
+
+        _playing.Remove(e);
+    }
+
+    private IEnumerator WaitForEndOfEvent()
     {
         yield return new WaitForSeconds(_duration);
-        AudioManager.Instance.PlayingDB[_channel].Remove(e);
+        Debug.Log(string.Format("Duration of event -> {0} done", _eventName));
+        _playingRoutine = null;
     }
 }

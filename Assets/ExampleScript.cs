@@ -6,7 +6,7 @@ public class ExampleScript : MonoBehaviour
 {
     protected void Start ()
     {
-        AudioManager.Instance.PlayEvent("DEBUG_EVENT", 5.0f);
+        StartCoroutine(DebugRoutine());
     }
 
     protected void Update()
@@ -15,5 +15,13 @@ public class ExampleScript : MonoBehaviour
         {
             SceneManager.LoadScene(1, LoadSceneMode.Single);
         }
+    }
+
+    private IEnumerator DebugRoutine()
+    {
+        yield return new WaitForSeconds(2.0f);
+        AudioManager.Instance.PlayEvent("DEBUG_EVENT", 2.0f);
+        yield return new WaitForSeconds(1.0f);
+        AudioManager.Instance.StopOldest("DEBUG_EVENT");
     }
 }

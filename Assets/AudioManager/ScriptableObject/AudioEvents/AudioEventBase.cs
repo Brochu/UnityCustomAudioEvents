@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 public abstract class AudioEventBase : ScriptableObject
 {
@@ -20,6 +21,10 @@ public abstract class AudioEventBase : ScriptableObject
     [SerializeField]
     protected string _eventName;
 
-    public abstract void Play();
-    public abstract void Stop();
+    protected List<PlayingEvent> _playing = new List<PlayingEvent>();
+
+    public abstract PlayingEvent Play();
+    public abstract void StopOldest();
+    public abstract void StopNewest();
+    public abstract void Stop(PlayingEvent e);
 }
