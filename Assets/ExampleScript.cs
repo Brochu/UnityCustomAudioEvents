@@ -2,11 +2,13 @@
 using UnityEngine.SceneManagement;
 using System.Collections;
 
+using BrocAudio;
+
 public class ExampleScript : MonoBehaviour
 {
     protected void Start ()
     {
-        StartCoroutine(DebugRoutine());
+        AudioManager.Instance.PlayEvent("DEBUG_RANDOM");
     }
 
     protected void Update()

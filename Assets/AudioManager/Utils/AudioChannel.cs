@@ -1,13 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public enum AudioChannel
+namespace BrocAudio.Utils
 {
-    Music,
-    Ambience,
-    SFX,
+    public enum AudioChannel
+    {
+        Music,
+        Ambience,
+        SFX,
 
-    UI_Music,
-    UI_Ambience,
-    UI_SFX
+        UI_Music,
+        UI_Ambience,
+        UI_SFX
+    }
 }
